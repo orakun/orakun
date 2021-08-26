@@ -1,0 +1,2 @@
+- 👋 Hi, I’m Orkun
+- 👀 I'm studying C#, C++, Phyton
