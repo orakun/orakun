@@ -19,21 +19,23 @@ export async function computePortfolioSummary(): Promise<PortfolioSummary> {
     };
   }
 
-  // Latest price per asset (single query)
-  const latestPrices = await prisma.$queryRaw<
-    { assetId: number; priceTry: string }[]
-  >`
-    SELECT ph.assetId, ph.priceTry
-    FROM PriceHistory ph
-    INNER JOIN (
-      SELECT assetId, MAX(date) AS maxDate
-      FROM PriceHistory
-      GROUP BY assetId
-    ) latest ON ph.assetId = latest.assetId AND ph.date = latest.maxDate
-  `;
+  // Latest price per asset — groupBy to find max date, then fetch each price
+  const latestDates = await prisma.priceHistory.groupBy({
+    by: ["assetId"],
+    _max: { date: true },
+  });
 
-  const priceMap = new Map(
-    latestPrices.map((p) => [Number(p.assetId), parseFloat(p.priceTry)])
+  const priceMap = new Map<number, number>();
+  await Promise.all(
+    latestDates
+      .filter((r) => r._max.date !== null)
+      .map(async ({ assetId, _max }) => {
+        const ph = await prisma.priceHistory.findFirst({
+          where: { assetId, date: _max.date! },
+          select: { assetId: true, priceTry: true },
+        });
+        if (ph) priceMap.set(Number(ph.assetId), toNum(ph.priceTry));
+      })
   );
 
   // CPI data — fetch all at once

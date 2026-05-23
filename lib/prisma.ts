@@ -1,14 +1,11 @@
-import path from "path";
-import Database from "better-sqlite3";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@prisma/client";
 
-const DB_PATH = path.join(process.cwd(), "data", "portfolio.db");
-
 function createPrismaClient() {
-  const database = new Database(DB_PATH);
-  database.pragma("journal_mode = WAL");
-  const adapter = new PrismaBetterSqlite3({ url: `file:${DB_PATH}` });
+  const url = process.env.DATABASE_URL ?? "file:./data/portfolio.db";
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+
+  const adapter = new PrismaLibSql({ url, ...(authToken ? { authToken } : {}) });
   return new PrismaClient({ adapter });
 }
 
