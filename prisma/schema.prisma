@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Account {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+}
+
+model Asset {
+  id           Int            @id @default(autoincrement())
+  symbol       String         @unique
+  displayName  String
+  type         String         // STOCK | CURRENCY | GOLD | FUND
+  transactions Transaction[]
+  prices       PriceHistory[]
+}
+
+model Transaction {
+  id              Int      @id @default(autoincrement())
+  accountId       Int
+  account         Account  @relation(fields: [accountId], references: [id])
+  assetId         Int
+  asset           Asset    @relation(fields: [assetId], references: [id])
+  transactionDate DateTime
+  quantity        Decimal
+  unitPriceTry    Decimal
+  totalTry        Decimal
+  notes           String?
+  createdAt       DateTime @default(now())
+}
+
+model PriceHistory {
+  id       Int      @id @default(autoincrement())
+  assetId  Int
+  asset    Asset    @relation(fields: [assetId], references: [id])
+  date     DateTime
+  priceTry Decimal
+
+  @@unique([assetId, date])
+}
+
+model InflationMonthly {
+  id       Int     @id @default(autoincrement())
+  year     Int
+  month    Int
+  cpiIndex Decimal
+
+  @@unique([year, month])
+}
