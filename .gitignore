@@ -48,5 +48,5 @@ __pycache__/
 *.pyc
 scripts/.venv/
 
-# Prisma
-prisma.config.ts
+# Prisma local dev DB
+prisma.db
