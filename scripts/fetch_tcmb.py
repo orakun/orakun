@@ -36,15 +36,16 @@ def fetch_series(series_code: str, start: str, end: str, frequency: int = 5) -> 
     if not TCMB_API_KEY:
         print("UYARI: TCMB_API_KEY ayarlanmamış — veri çekilemiyor.")
         return []
-    params = {
-        "series": series_code,
-        "startDate": start,
-        "endDate": end,
-        "type": "json",
-        "key": TCMB_API_KEY,
-        "frequency": frequency,
-    }
-    r = requests.get(f"{BASE_URL}/series", params=params, timeout=30)
+    # TCMB EVDS API: series is part of the path, not a query param
+    url = (
+        f"{BASE_URL}/series={series_code}"
+        f"&startDate={start}"
+        f"&endDate={end}"
+        f"&type=json"
+        f"&key={TCMB_API_KEY}"
+        f"&frequency={frequency}"
+    )
+    r = requests.get(url, timeout=30)
     r.raise_for_status()
     return r.json().get("items", [])
 
